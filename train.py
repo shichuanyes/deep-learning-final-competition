@@ -5,7 +5,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from dataset import ImageDataset
+from datasets.image_dataset import ImageDataset
 from models.u_net import UNet
 
 if __name__ == '__main__':
