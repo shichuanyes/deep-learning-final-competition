@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from dataset import ImageDataset
-from model import UNet
+from models.u_net import UNet
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
