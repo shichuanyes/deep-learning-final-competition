@@ -52,6 +52,8 @@ if __name__ == '__main__':
 
     jaccard = torchmetrics.JaccardIndex(task='multiclass', num_classes=num_classes).to(device)
 
+    scaler = torch.cuda.amp.GradScaler()
+
     best_score = 0.0
 
     for epoch in range(args.num_epochs):
@@ -67,10 +69,14 @@ if __name__ == '__main__':
             inputs = F.one_hot(inputs, num_classes).permute(0, 4, 1, 2, 3)
 
             optimizer.zero_grad()
-            output = model(inputs)
-            loss = criterion(output, target)
-            loss.backward()
-            optimizer.step()
+            with torch.cuda.amp.autocast():
+                output = model(inputs)
+                loss = criterion(output, target)
+
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
             train_loss += loss.item()
 
         score = 0.0
@@ -85,7 +91,9 @@ if __name__ == '__main__':
 
                 inputs = F.one_hot(inputs, num_classes).permute(0, 4, 1, 2, 3)
 
-                output = model(inputs)
+                with torch.cuda.amp.autocast():
+                    output = model(inputs)
+
                 pred = torch.argmax(output, dim=1)
                 score += jaccard(pred, target)
 
