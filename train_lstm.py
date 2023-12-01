@@ -10,7 +10,6 @@ from tqdm import tqdm
 
 from datasets.video_dataset import VideoDataset
 from models.lstm import Seq2Seq
-from models.u_net import UNet
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -36,6 +35,7 @@ if __name__ == '__main__':
     num_classes = 49
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
 
     model = Seq2Seq(
         num_channels=num_classes,
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     ).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     jaccard = torchmetrics.JaccardIndex(task='multiclass', num_classes=num_classes).to(device)
 
