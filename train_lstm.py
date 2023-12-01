@@ -35,7 +35,6 @@ if __name__ == '__main__':
     num_classes = 49
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(device)
 
     model = Seq2Seq(
         num_channels=num_classes,
@@ -79,9 +78,9 @@ if __name__ == '__main__':
 
             train_loss += loss.item()
 
-        score = 0.0
         model.eval()
         with torch.inference_mode():
+            score = 0.0
             for batch in tqdm(val_loader, desc='Validation', leave=False):
                 idx = random.randrange(args.num_frames, train_ds.num_frames)
 
