@@ -25,14 +25,12 @@ class VideoDataset(Dataset):
             torchvision.io.read_image(os.path.join(video_dir, f'image_{img_idx}.png'))
             for img_idx in range(self.num_frames)
         ]
+
+        item = {'images': torch.stack(images)}
         mask_path = os.path.join(video_dir, 'mask.npy')
         if os.path.isfile(mask_path):
-            masks = np.load(mask_path)
-            return {
-                'images': torch.stack(images),
-                'masks': torch.tensor(masks).long()
-            }
-        else:
-            return {
-                'images': torch.stack(images)
-            }
+            item['masks'] = torch.tensor(np.load(mask_path)).long()
+        one_hot_path = os.path.join(video_dir, 'one_hot.npy')
+        if os.path.isfile(mask_path):
+            item['one_hots'] = torch.tensor(np.load(one_hot_path)).long()
+        return item

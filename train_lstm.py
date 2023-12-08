@@ -4,7 +4,6 @@ import random
 import torch
 import torchmetrics
 from torch import nn
-from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -62,10 +61,10 @@ if __name__ == '__main__':
             idx = random.randrange(args.num_frames, train_ds.num_frames)
 
             masks = batch['masks']
-            inputs = masks[:, idx - args.num_frames:idx, :, :].to(device)
+            one_hots = batch['one_hots']
+            inputs = one_hots[:, idx - args.num_frames:idx, :, :].to(device)
             target = masks[:, idx, :, :].to(device)
-
-            inputs = F.one_hot(inputs, num_classes).permute(0, 4, 1, 2, 3)
+            inputs = inputs.permute(0, 4, 1, 2, 3)
 
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
@@ -85,10 +84,10 @@ if __name__ == '__main__':
                 idx = random.randrange(args.num_frames, train_ds.num_frames)
 
                 masks = batch['masks']
-                inputs = masks[:, idx - args.num_frames:idx, :, :].to(device)
+                one_hots = batch['one_hots']
+                inputs = one_hots[:, idx - args.num_frames:idx, :, :].to(device)
                 target = masks[:, idx, :, :].to(device)
-
-                inputs = F.one_hot(inputs, num_classes).permute(0, 4, 1, 2, 3)
+                inputs = inputs.permute(0, 4, 1, 2, 3)
 
                 with torch.cuda.amp.autocast():
                     output = model(inputs)
