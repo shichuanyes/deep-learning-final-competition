@@ -11,6 +11,19 @@ from tqdm import tqdm
 from datasets.video_dataset import VideoDataset
 from models.lstm import Seq2Seq
 
+
+def to_binary(masks: torch.Tensor) -> torch.Tensor:
+    results = []
+    for mask in masks:
+        objects = torch.unique(mask[mask != 0])
+        minibatch = mask.unsqueeze(0).repeat(len(objects), 1, 1, 1)
+        for i, obj in enumerate(objects):
+            minibatch[i][mask != obj] = 0
+            minibatch[i][mask == obj] = 1
+        results.append(minibatch)
+    return torch.cat(results, 0)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='LSTMTraining',
@@ -37,7 +50,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = Seq2Seq(
-        num_channels=num_classes,
+        num_channels=1,
         num_kernels=args.num_kernels,
         kernel_size=3,
         padding=1,
@@ -46,7 +59,7 @@ if __name__ == '__main__':
         num_layers=args.num_layers
     ).to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCELoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     jaccard = torchmetrics.JaccardIndex(task='multiclass', num_classes=num_classes).to(device)
@@ -59,13 +72,14 @@ if __name__ == '__main__':
         model.train()
         train_loss = 0.0
         for batch in tqdm(train_loader, desc='Train', leave=False):
-            idx = random.randrange(args.num_frames, train_ds.num_frames)
+            masks = to_binary(batch['masks'])
 
-            masks = batch['masks']
+            idx = random.randrange(args.num_frames, train_ds.num_frames)
             inputs = masks[:, idx - args.num_frames:idx, :, :].to(device)
             target = masks[:, idx, :, :].to(device)
 
-            inputs = F.one_hot(inputs, num_classes).permute(0, 4, 1, 2, 3)
+            inputs = inputs.unsqueeze(1)
+            target = target.unsqueeze(1)
 
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
@@ -82,13 +96,11 @@ if __name__ == '__main__':
         with torch.inference_mode():
             score = 0.0
             for batch in tqdm(val_loader, desc='Validation', leave=False):
-                idx = random.randrange(args.num_frames, train_ds.num_frames)
+                masks = to_binary(batch['masks'])
 
-                masks = batch['masks']
+                idx = random.randrange(args.num_frames, train_ds.num_frames)
                 inputs = masks[:, idx - args.num_frames:idx, :, :].to(device)
                 target = masks[:, idx, :, :].to(device)
-
-                inputs = F.one_hot(inputs, num_classes).permute(0, 4, 1, 2, 3)
 
                 with torch.cuda.amp.autocast():
                     output = model(inputs)
