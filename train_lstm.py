@@ -59,7 +59,7 @@ if __name__ == '__main__':
         num_layers=args.num_layers
     ).to(device)
 
-    criterion = nn.BCELoss()
+    criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     jaccard = torchmetrics.JaccardIndex(task='multiclass', num_classes=num_classes).to(device)
@@ -75,8 +75,8 @@ if __name__ == '__main__':
             masks = to_binary(batch['masks'])
 
             idx = random.randrange(args.num_frames, train_ds.num_frames)
-            inputs = masks[:, idx - args.num_frames:idx, :, :].to(device)
-            target = masks[:, idx, :, :].to(device)
+            inputs = masks[:, idx - args.num_frames:idx, :, :].float().to(device)
+            target = masks[:, idx, :, :].float().to(device)
 
             inputs = inputs.unsqueeze(1)
             target = target.unsqueeze(1)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                 masks = to_binary(batch['masks'])
 
                 idx = random.randrange(args.num_frames, train_ds.num_frames)
-                inputs = masks[:, idx - args.num_frames:idx, :, :].to(device)
+                inputs = masks[:, idx - args.num_frames:idx, :, :].float().to(device)
                 target = masks[:, idx, :, :].to(device)
 
                 with torch.cuda.amp.autocast():
