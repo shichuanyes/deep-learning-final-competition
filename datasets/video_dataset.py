@@ -26,7 +26,10 @@ class VideoDataset(Dataset):
             for img_idx in range(self.num_frames)
         ]
 
-        item = {'images': torch.stack(images)}
+        item = {
+            'path': video_dir,
+            'images': torch.stack(images)
+        }
         mask_path = os.path.join(video_dir, 'mask.npy')
         if os.path.isfile(mask_path):
             item['masks'] = torch.tensor(np.load(mask_path)).long()
