@@ -33,7 +33,4 @@ class VideoDataset(Dataset):
         mask_path = os.path.join(video_dir, 'mask.npy')
         if os.path.isfile(mask_path):
             item['masks'] = torch.tensor(np.load(mask_path)).long()
-        one_hot_path = os.path.join(video_dir, 'one_hot.npy')
-        if os.path.isfile(mask_path):
-            item['one_hots'] = torch.tensor(np.load(one_hot_path)).long()
         return item
