@@ -100,4 +100,4 @@ if __name__ == '__main__':
             best_score = score
             torch.save(model, args.save_path)
 
-    print(f'Best Val Score={best_score}')
+    print(f'Best Val Score={best_score / len(val_loader)}')
