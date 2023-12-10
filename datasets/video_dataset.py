@@ -7,13 +7,13 @@ from torch.utils.data import Dataset
 
 
 class VideoDataset(Dataset):
-    def __init__(self, data_dir: str, num_frames: int = 22):
+    def __init__(self, data_dir: str, num_frames: int = 22, require_mask: bool = False):
         self.data_dir = data_dir
         self.num_frames = num_frames
         self.video_dirs = [
             os.path.join(self.data_dir, folder)
             for folder in os.listdir(self.data_dir)
-            if os.path.isdir(os.path.join(self.data_dir, folder)) and folder.startswith('video_')
+            if os.path.isdir(os.path.join(self.data_dir, folder)) and folder.startswith('video_') and (not require_mask or os.path.isfile(os.path.join(self.data_dir, folder, 'mask.npy')))
         ]
 
     def __len__(self):
