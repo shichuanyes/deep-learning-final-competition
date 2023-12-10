@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 
 
 class VideoDataset(Dataset):
-    def __init__(self, data_dir: str, num_frames: int = 22, require_mask: bool = False):
+    def __init__(self, data_dir: str, num_frames: int = 22, require_mask: bool = True):
         self.data_dir = data_dir
         self.num_frames = num_frames
         self.video_dirs = [
