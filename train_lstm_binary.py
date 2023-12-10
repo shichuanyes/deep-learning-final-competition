@@ -27,11 +27,11 @@ def to_binary(masks: torch.Tensor) -> torch.Tensor:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='LSTMTraining',
-        description="Train a LSTM"
+        description="Train a LSTM (binary method)"
     )
     parser.add_argument('train_path')
     parser.add_argument('val_path', nargs='?', default='')
-    parser.add_argument('save_path', nargs='?', default='model_lstm.pt')
+    parser.add_argument('save_path', nargs='?', default='model_lstm_binary.pt')
     parser.add_argument('--num_frames', type=int, default=11)
     parser.add_argument('--num_kernels', type=int, default=4)
     parser.add_argument('--num_layers', type=int, default=3)
@@ -75,8 +75,8 @@ if __name__ == '__main__':
             masks = to_binary(batch['masks'])
 
             idx = random.randrange(args.num_frames, train_ds.num_frames)
-            inputs = masks[:, idx - args.num_frames:idx, :, :].float().to(device)
-            target = masks[:, idx, :, :].float().to(device)
+            inputs = masks[:, idx - args.num_frames:idx].float().to(device)
+            target = masks[:, idx].float().to(device)
 
             inputs = inputs.unsqueeze(1)
             target = target.unsqueeze(1)
@@ -114,4 +114,4 @@ if __name__ == '__main__':
             best_score = score
             torch.save(model, args.save_path)
 
-    print(f'Best Val Score={best_score}')
+    print(f'Best Val Score={best_score / len(val_loader)}')
