@@ -4,13 +4,11 @@ import random
 import torch
 import torchmetrics
 from torch import nn
-from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from datasets.video_dataset import VideoDataset
 from models.lstm import Seq2Seq
-
 
 def to_binary(masks: torch.Tensor) -> torch.Tensor:
     results = []
@@ -62,7 +60,7 @@ if __name__ == '__main__':
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
-    jaccard = torchmetrics.JaccardIndex(task='multiclass', num_classes=num_classes).to(device)
+    jaccard = torchmetrics.JaccardIndex(task='binary').to(device)
 
     scaler = torch.cuda.amp.GradScaler()
 
@@ -99,14 +97,16 @@ if __name__ == '__main__':
                 masks = to_binary(batch['masks'])
 
                 idx = random.randrange(args.num_frames, train_ds.num_frames)
-                inputs = masks[:, idx - args.num_frames:idx, :, :].float().to(device)
-                target = masks[:, idx, :, :].to(device)
+                inputs = masks[:, idx - args.num_frames:idx].float().to(device)
+                target = masks[:, idx].to(device)
+
+                inputs = inputs.unsqueeze(1)
+                target = target.unsqueeze(1)
 
                 with torch.cuda.amp.autocast():
                     output = model(inputs)
 
-                pred = torch.argmax(output, dim=1)
-                score += jaccard(pred, target)
+                score += jaccard(torch.where(output > 0, 1, 0), target)
 
         print(f"Epoch [{epoch + 1}/{args.num_epochs}]: Train Loss: {train_loss / len(train_loader)} Val Score: {score / len(val_loader)}")
 
