@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 
+# https://sladewinter.medium.com/video-frame-prediction-using-convlstm-network-in-pytorch-b5210a6ce582
 # Original ConvLSTM cell as proposed by Shi et al.
 class ConvLSTMCell(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding, activation, frame_size):
